@@ -29,4 +29,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Usuarios por ciudad
     @Query("SELECT u FROM Usuario u JOIN FETCH u.ciudad WHERE u.ciudad.id = :ciudadId")
     List<Usuario> findByCiudadIdWithCiudad(@Param("ciudadId") Long ciudadId);
+
+    boolean existsByCiudadId(Long ciudadId);
 }

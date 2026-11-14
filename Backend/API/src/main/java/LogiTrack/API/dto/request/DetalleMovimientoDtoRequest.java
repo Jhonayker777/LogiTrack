@@ -4,6 +4,10 @@ import jakarta.validation.constraints.*;
 
 public record DetalleMovimientoDtoRequest(
 
+        @NotNull(message = "El movimiento es obligatorio")
+        @Positive(message = "El id del movimiento debe ser válido")
+        Long movimientoId,
+
         @NotNull(message = "El producto es obligatorio")
         @Positive(message = "El id del producto debe ser válido")
         Long productoId,

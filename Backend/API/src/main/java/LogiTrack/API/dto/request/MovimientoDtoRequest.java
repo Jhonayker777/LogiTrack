@@ -16,7 +16,12 @@ public record MovimientoDtoRequest(
         Long bodegaDestinoId,
 
         @Size(max = 255, message = "La observación no puede superar 255 caracteres")
-        String observacion
+        String observacion,
 
+        @NotNull
+        Long productoId,
+
+        @NotNull @Min(1)
+        Integer cantidad
 ) {
 }

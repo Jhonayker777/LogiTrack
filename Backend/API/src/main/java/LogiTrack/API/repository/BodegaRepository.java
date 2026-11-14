@@ -22,4 +22,8 @@ public interface BodegaRepository extends JpaRepository<Bodega, Long> {
 
     @Query("SELECT b FROM Bodega b JOIN FETCH b.encargado JOIN FETCH b.ciudad WHERE b.id = :id")
     Optional<Bodega> findByIdWithRelations(@Param("id") Long id);
+
+    boolean existsByEncargadoId(Long encargadoId);
+
+    boolean existsByCiudadId(Long ciudadId);
 }
