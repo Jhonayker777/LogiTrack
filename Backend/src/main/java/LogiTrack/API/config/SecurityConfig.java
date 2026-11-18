@@ -1,3 +1,4 @@
+
 package LogiTrack.API.config;
 
 import LogiTrack.API.security.JwtFilter;
@@ -27,7 +28,6 @@ public class SecurityConfig {
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
 
-    // Cifrado de contraseñas (lo usan AuthService, UsuarioService y SolicitudRegistroService)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -37,49 +37,71 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // API REST con JWT (stateless): no se usa CSRF ni sesiones
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint(authenticationEntryPoint) // 401 JSON
-                        .accessDeniedHandler(accessDeniedHandler))          // 403 JSON
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         // Públicos
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/webjars/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-ui.html", "/webjars/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Solo ADMIN: usuarios, solicitudes de registro y auditoría
-                        .requestMatchers("/api/usuarios/**", "/api/solicitudes/**", "/api/auditorias/**").hasRole("ADMIN")
+                        // Perfil propio
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me")
+                        .hasAnyRole("ADMIN", "EMPLEADO")
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/me")
+                        .hasAnyRole("ADMIN", "EMPLEADO")
 
-                        // ADMIN y EMPLEADO: consultar todo y registrar movimientos
-                        .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "EMPLEADO")
-                        .requestMatchers(HttpMethod.POST, "/api/movimientos").hasAnyRole("ADMIN", "EMPLEADO")
+                        // Solo ADMIN
+                        .requestMatchers("/api/usuarios/**",
+                                "/api/solicitudes/**",
+                                "/api/auditorias/**").hasRole("ADMIN")
 
-                        // Cualquier otra escritura (crear/editar/eliminar bodegas, productos, stock...) solo ADMIN
+                        // ADMIN y EMPLEADO
+                        .requestMatchers(HttpMethod.GET, "/api/**")
+                        .hasAnyRole("ADMIN", "EMPLEADO")
+                        .requestMatchers(HttpMethod.POST, "/api/movimientos")
+                        .hasAnyRole("ADMIN", "EMPLEADO")
+
+                        // Otras escrituras: solo ADMIN
                         .requestMatchers("/api/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
-                // El filtro JWT se ejecuta antes del filtro de usuario/contraseña
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-    // CORS para el frontend (carpeta frontend/ servida con Live Server u otro servidor estático)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+
         config.setAllowedOrigins(List.of(
-                "http://127.0.0.1:5501", "http://localhost:5500",
-                "http://127.0.0.1:3000", "http://localhost:3000",
-                "http://127.0.0.1:8081", "http://localhost:8081"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                "http://127.0.0.1:5501",
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://127.0.0.1:3000",
+                "http://localhost:3000",
+                "http://127.0.0.1:8081",
+                "http://localhost:8081"
+        ));
+
+        config.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
 }

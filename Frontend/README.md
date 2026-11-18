@@ -1,44 +1,49 @@
-# LogiTrack — Frontend
+# LogiTrack · Frontend modular
 
-Frontend en HTML, CSS y JavaScript puro (sin dependencias ni compilación) para la API Spring Boot de LogiTrack.
+Frontend SPA en HTML, CSS y JavaScript ES Modules, sin framework. Consume la API REST de Spring Boot en `http://localhost:8080`.
 
-## Cómo ejecutarlo
+## Arquitectura
 
-1. Inicia el backend (por defecto en `http://localhost:8080`).
-2. Si tu backend usa otro puerto, edita `js/config.js`.
-3. Sirve esta carpeta con un servidor estático en un puerto permitido por el CORS del backend (5500, 3000 u 8081):
-   - **VS Code Live Server**: clic derecho en `index.html` → *Open with Live Server* (puerto 5500).
-   - **Python**: `python -m http.server 5500`
-   - **Node**: `npx serve -l 3000`
-4. Abre `http://localhost:5500` (o el puerto que hayas usado).
-
-> No abras `index.html` con doble clic (`file://`): el CORS del backend lo bloqueará.
-
-## Funcionalidades
-
-| Módulo | ADMIN | EMPLEADO |
-|---|---|---|
-| Login / solicitud de registro | ✔ | ✔ |
-| Panel con indicadores, stock bajo y ocupación de bodegas | ✔ | ✔ |
-| Movimientos (entrada, salida, transferencia) + detalle | Consultar y registrar | Consultar y registrar |
-| Stock por bodega / producto (con total por producto) | CRUD | Consultar |
-| Productos (con filtro de stock bajo), bodegas, ciudades, departamentos | CRUD | Consultar |
-| Usuarios | CRUD | — |
-| Solicitudes de registro (aprobar / rechazar con motivo) | ✔ | — |
-| Auditoría (por entidad y rango de fechas, valores antes/después) | ✔ | — |
-
-El token JWT se guarda en `localStorage` y la sesión se cierra automáticamente cuando expira o cuando el backend responde 401.
-
-## Estructura
-
+```text
+LogiTrack-Frontend-Pro/
+├── index.html                 # Acceso
+├── app.html                   # Shell del dashboard
+├── styles.css                 # Design system y estilos
+├── auth.js                    # Login, registro y recuperación
+├── app.js                     # Composición de vistas y navegación
+├── js/
+│   ├── core/
+│   │   ├── dom.js             # Selectores, escape HTML y formato
+│   │   └── session.js         # Estado de sesión y cierre
+│   ├── services/
+│   │   ├── http.js            # Cliente HTTP, JWT y errores
+│   │   └── index.js           # Servicios por recurso/endpoints
+│   ├── ui/
+│   │   └── notifications.js   # Toasts reutilizables
+│   └── features/
+│       └── profile.view.js   # Vista de perfil personal
+└── backend-patch/             # Cambios requeridos para perfil propio
+    └── ...
 ```
-index.html        Login y solicitud de registro
-app.html          Panel principal (SPA con rutas #/...)
-css/styles.css    Estilos
-js/config.js      URL del backend
-js/api.js         Cliente HTTP + sesión JWT
-js/ui.js          Modales, formularios, toasts, iconos
-js/resources.js   Definición de cada módulo (columnas, campos, filtros)
-js/auth.js        Lógica de index.html
-js/app.js         Router, vistas, panel y movimientos
-```
+
+## Ejecutar
+
+1. Inicia Spring Boot en `http://localhost:8080`.
+2. Aplica los cambios de `backend-patch` (son necesarios para `/api/usuarios/me`).
+3. Sirve esta carpeta desde Live Server u otro servidor estático HTTP. No abras `app.html` como `file://`, porque los módulos ES requieren servidor.
+4. Abre `index.html`.
+
+## Perfil personal
+
+El módulo **Mi perfil** consulta `GET /api/usuarios/me` y actualiza `PUT /api/usuarios/me`. El usuario puede modificar nombre, apellido, documento, correo, teléfono, dirección y ciudad. No puede modificar su propio rol, estado ni username. La autorización real se valida en Spring Security usando el usuario del JWT; nunca se confía en un ID enviado por el navegador.
+
+## Seguridad
+
+El cliente añade `Authorization: Bearer <token>` a las llamadas protegidas. Ante HTTP 401 limpia la sesión y redirige al login. Los permisos del frontend solo mejoran la experiencia; la autorización definitiva debe permanecer en el backend.
+
+## Consideraciones
+
+- API base configurable en `js/services/http.js`.
+- `js/services/index.js` centraliza los recursos y sus rutas.
+- `app.js` conserva el renderizado de módulos existentes y orquesta la navegación.
+- No se implementa cambio de contraseña porque el backend actual no expone un endpoint seguro para esa operación.

@@ -57,7 +57,7 @@ public class ProductoServiceImpl implements ProductoService {
 
         if (detalleMovimientoRepository.existsByProductoId(p.getId()))
             throw new DatabaseRuleException("No se puede eliminar el producto porque pertenece a un movimiento registrado.");
-        if (stockBodegaRepository.existsByProductoId(p.getId()))
+        if (stockBodegaRepository.existsByBodegaId(p.getId()))
             throw new DatabaseRuleException("No se puede eliminar el producto porque tiene stock registrado en una bodega.");
 
         productoRepository.delete(p);

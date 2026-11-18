@@ -18,11 +18,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     boolean existsByEmail(String email);
     boolean existsByDocumento(String documento);
 
+    boolean existsByCiudadId(Long ciudadId);
+
     long countByRolAndActivoTrue(Usuario.Rol rol);
 
     List<Usuario> findByRol(Usuario.Rol rol);
     List<Usuario> findByActivoTrue();
-
 
     @Query("SELECT u FROM Usuario u JOIN FETCH u.ciudad WHERE u.ciudad.id = :ciudadId")
     List<Usuario> findByCiudadIdWithCiudad(@Param("ciudadId") Long ciudadId);

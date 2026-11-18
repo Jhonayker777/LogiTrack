@@ -1,110 +1,32 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0f1b2d">
-  <meta name="description" content="LogiTrack - Sistema de gestión de inventario y bodegas">
-  <title>Iniciar sesión | LogiTrack</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/styles.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0e13"><title>LogiTrack · Acceso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"><script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="auth-body">
   <main class="auth-layout">
-    <section class="auth-aside" aria-hidden="true">
-      <div class="brand brand-light">
-        <span class="brand-mark" id="brand-mark"></span>
-        <span class="brand-name">LogiTrack</span>
-      </div>
-      <div class="auth-aside-copy">
-        <h2>Control total de tu inventario, bodega por bodega.</h2>
-        <p>Registra entradas, salidas y transferencias, consulta el stock en tiempo real y mantén la trazabilidad completa de cada cambio.</p>
-        <ul class="auth-points">
-          <li>Movimientos con validación de stock</li>
-          <li>Alertas de stock bajo por producto</li>
-          <li>Auditoría de todas las operaciones</li>
-        </ul>
-      </div>
-      <p class="auth-aside-foot">LogiTrack JKQ &copy; 2026</p>
+    <section class="auth-visual"><div class="brand"><span class="brand-mark"><i data-lucide="boxes"></i></span><span>LogiTrack<span class="brand-dot">.</span></span></div>
+      <div class="visual-copy"><span class="eyebrow">CONTROL LOGÍSTICO INTELIGENTE</span><h1>Tu inventario,<br><em>bajo control.</em></h1><p>Visibilidad en tiempo real, trazabilidad completa y decisiones más inteligentes para cada bodega.</p>
+        <div class="visual-metrics"><div><strong>360°</strong><small>Visibilidad operativa</small></div><div><strong>100%</strong><small>Trazabilidad</small></div><div><strong>24/7</strong><small>Control de stock</small></div></div></div>
+      <div class="visual-foot"><span><i data-lucide="shield-check"></i> Plataforma segura</span><span>LOGISTICS · INVENTORY · AUDIT</span></div>
     </section>
-
-    <section class="auth-panel">
-      <div class="auth-card">
-        <div class="brand auth-brand-mobile">
-          <span class="brand-mark" id="brand-mark-mobile"></span>
-          <span class="brand-name">LogiTrack</span>
-        </div>
-
-        <div class="tabs" role="tablist" aria-label="Acceso">
-          <button class="tab is-active" role="tab" id="tab-login" aria-controls="panel-login" aria-selected="true">Iniciar sesión</button>
-          <button class="tab" role="tab" id="tab-register" aria-controls="panel-register" aria-selected="false" tabindex="-1">Solicitar registro</button>
-        </div>
-
-        <div class="alert alert-warning" id="expired-msg" role="alert" hidden>Tu sesión expiró. Inicia sesión nuevamente.</div>
-
-        <div id="panel-login" role="tabpanel" aria-labelledby="tab-login">
-          <h1 class="auth-title">Bienvenido de nuevo</h1>
-          <p class="muted-text">Ingresa tus credenciales para acceder al panel.</p>
-          <form id="login-form" class="stack" novalidate>
-            <div class="field">
-              <label for="login-username">Usuario</label>
-              <input id="login-username" name="username" autocomplete="username" required>
-            </div>
-            <div class="field">
-              <label for="login-password">Contraseña</label>
-              <input id="login-password" name="password" type="password" autocomplete="current-password" required>
-            </div>
-            <p class="form-error" id="login-error" role="alert" hidden></p>
-            <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
-          </form>
-        </div>
-
-        <div id="panel-register" role="tabpanel" aria-labelledby="tab-register" hidden>
-          <h1 class="auth-title">Solicitar una cuenta</h1>
-          <p class="muted-text">Un administrador revisará y aprobará tu solicitud antes de que puedas ingresar.</p>
-          <form id="register-form" class="form-grid" novalidate>
-            <div class="field"><label for="r-nombre">Nombre <span class="req" aria-hidden="true">*</span></label><input id="r-nombre" name="nombre" required autocomplete="given-name"></div>
-            <div class="field"><label for="r-apellido">Apellido <span class="req" aria-hidden="true">*</span></label><input id="r-apellido" name="apellido" required autocomplete="family-name"></div>
-            <div class="field"><label for="r-documento">Documento <span class="req" aria-hidden="true">*</span></label><input id="r-documento" name="documento" required></div>
-            <div class="field"><label for="r-email">Correo <span class="req" aria-hidden="true">*</span></label><input id="r-email" name="email" type="email" required autocomplete="email"></div>
-            <div class="field"><label for="r-telefono">Teléfono</label><input id="r-telefono" name="telefono" type="tel" autocomplete="tel"></div>
-            <div class="field"><label for="r-direccion">Dirección</label><input id="r-direccion" name="direccion" autocomplete="street-address"></div>
-            <div class="field" id="r-ciudad-field">
-              <label for="r-ciudadId">ID de ciudad <span class="req" aria-hidden="true">*</span></label>
-              <input id="r-ciudadId" name="ciudadId" type="number" min="1" required>
-            </div>
-            <div class="field">
-              <label for="r-rolSolicitado">Rol solicitado <span class="req" aria-hidden="true">*</span></label>
-              <select id="r-rolSolicitado" name="rolSolicitado" required>
-                <option value="EMPLEADO">Empleado</option>
-                <option value="ADMIN">Administrador</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="r-turno">Turno</label>
-              <select id="r-turno" name="turno">
-                <option value="">Selecciona…</option>
-                <option value="MAÑANA">Mañana</option>
-                <option value="TARDE">Tarde</option>
-                <option value="NOCHE">Noche</option>
-              </select>
-            </div>
-            <div class="field"><label for="r-fechaIngreso">Fecha de ingreso</label><input id="r-fechaIngreso" name="fechaIngreso" type="date"></div>
-            <div class="field"><label for="r-username">Usuario <span class="req" aria-hidden="true">*</span></label><input id="r-username" name="username" required autocomplete="username"></div>
-            <div class="field"><label for="r-password">Contraseña <span class="req" aria-hidden="true">*</span></label><input id="r-password" name="password" type="password" required autocomplete="new-password"></div>
-            <p class="form-error field-full" id="register-error" role="alert" hidden></p>
-            <div class="field-full"><button type="submit" class="btn btn-primary btn-block">Enviar solicitud</button></div>
-          </form>
-        </div>
-      </div>
-    </section>
+    <section class="auth-panel"><div class="auth-card"><div class="mobile-brand brand"><span class="brand-mark"><i data-lucide="boxes"></i></span><span>LogiTrack<span class="brand-dot">.</span></span></div>
+      <span class="eyebrow">BIENVENIDO DE NUEVO</span><h2>Inicia sesión</h2><p class="muted">Ingresa tus credenciales para acceder al espacio de trabajo.</p>
+      <form id="loginForm" class="form-stack">
+        <label>Usuario<input name="username" autocomplete="username" placeholder="Tu nombre de usuario" required minlength="3"></label>
+        <label>Contraseña<div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required><button type="button" class="icon-button password-toggle" aria-label="Mostrar contraseña"><i data-lucide="eye"></i></button></div></label>
+        <div class="form-row between"><label class="check-label"><input type="checkbox" id="rememberUser"> Recordar usuario</label><button type="button" class="text-button" id="forgotLink">¿Olvidaste tu contraseña?</button></div>
+        <button class="btn btn-primary btn-wide" type="submit" id="loginButton"><span>Entrar al sistema</span><i data-lucide="arrow-up-right"></i></button>
+      </form>
+      <div class="auth-divider"><span>¿Nuevo en LogiTrack?</span></div><button class="btn btn-secondary btn-wide" id="registerLink">Solicitar acceso</button>
+      <p class="auth-legal">Al continuar, aceptas las políticas de uso y seguridad de tu organización.</p>
+    </div><div class="auth-copyright">© <span id="year"></span> LogiTrack · Operaciones con claridad.</div></section>
   </main>
-
-  <script src="./js/config.js"></script>
-  <script src="./js/api.js"></script>
-  <script src="./js/ui.js"></script>
-  <script src="./js/auth.js"></script>
-</body>
-</html>
+  <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+  <div id="authModal" class="modal-backdrop hidden"><section class="modal"><header class="modal-header"><div><span class="eyebrow" id="authModalEyebrow">ACCESO</span><h3 id="authModalTitle">Solicitud</h3></div><button class="icon-button" id="authModalClose"><i data-lucide="x"></i></button></header><div id="authModalBody"></div></section></div>
+  <script src="auth.js"></script>
+</body></html>

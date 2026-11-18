@@ -1,6 +1,7 @@
 package LogiTrack.API.Model;
 
 import LogiTrack.API.audit.AuditoriaListener;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,6 +45,7 @@ public class Usuario {
     private String direccion;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "ciudad_id")
     private Ciudad ciudad;
 

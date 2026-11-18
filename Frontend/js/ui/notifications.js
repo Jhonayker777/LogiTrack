@@ -1,0 +1,2 @@
+import { $, esc } from '../core/dom.js';
+export function toast(title,message,type='success'){const region=$('#toastRegion');if(!region)return;const el=document.createElement('div');el.className=`toast ${type==='error'?'error':''}`;el.innerHTML=`<i data-lucide="${type==='error'?'alert-circle':'check-circle-2'}"></i><div><b>${esc(title)}</b><small>${esc(message)}</small></div>`;region.append(el);window.lucide?.createIcons();setTimeout(()=>el.remove(),5200);}

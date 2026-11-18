@@ -14,6 +14,8 @@ public interface StockBodegaRepository extends JpaRepository<StockBodega, Long> 
 
     boolean existsByBodegaIdAndProductoId(Long bodegaId, Long productoId);
 
+    boolean existsByBodegaId(Long bodegaId);
+
     List<StockBodega> findByBodegaId(Long bodegaId);
     List<StockBodega> findByProductoId(Long productoId);
 
@@ -25,6 +27,4 @@ public interface StockBodegaRepository extends JpaRepository<StockBodega, Long> 
 
     @Query("SELECT sb.bodega.nombre, COALESCE(SUM(sb.cantidad), 0) FROM StockBodega sb GROUP BY sb.bodega.id, sb.bodega.nombre")
     List<Object[]> stockTotalPorBodega();
-
-    boolean existsByBodegaId(Long bodegaId);
 }

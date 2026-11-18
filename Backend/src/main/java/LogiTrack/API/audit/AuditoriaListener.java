@@ -11,6 +11,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
+import java.util.HashMap;
+import java.util.Map;
+
 @Component
 public class AuditoriaListener {
 
@@ -34,6 +40,8 @@ public class AuditoriaListener {
 
     @PreUpdate
     public void preUpdate(Object entity) {
+        // En un UPDATE, lo ideal sería capturar los valores anteriores,
+        // pero JPA no los provee directamente en el listener.
         registrar(entity, Auditoria.Operacion.UPDATE, null, entity);
     }
 
@@ -53,23 +61,27 @@ public class AuditoriaListener {
 
             Usuario usuario = (username != null) ? usuarioRepository.findByUsername(username).orElse(null) : null;
 
-            String jsonAntiguos = (valoresAntiguos != null) ? objectMapper.writeValueAsString(valoresAntiguos) : null;
-            String jsonNuevos = (valoresNuevos != null) ? objectMapper.writeValueAsString(valoresNuevos) : null;
+            Map<String, Object> jsonAntiguos = (valoresAntiguos != null) ? extraerCamposSimples(valoresAntiguos) : null;
+            Map<String, Object> jsonNuevos = (valoresNuevos != null) ? extraerCamposSimples(valoresNuevos) : null;
 
             // Enmascaramos el password si la entidad es un Usuario
             if ("Usuario".equals(nombreEntidad)) {
-                jsonAntiguos = enmascararPassword(jsonAntiguos);
-                jsonNuevos = enmascararPassword(jsonNuevos);
+                if (jsonAntiguos != null && jsonAntiguos.containsKey("password")) {
+                    jsonAntiguos.put("password", "***");
+                }
+                if (jsonNuevos != null && jsonNuevos.containsKey("password")) {
+                    jsonNuevos.put("password", "***");
+                }
             }
 
             Auditoria auditoria = Auditoria.builder()
                     .operacion(operacion)
-                    .fechaHora(java.time.LocalDateTime.now())
+                    .fechaHora(LocalDateTime.now())
                     .usuario(usuario)
                     .entidadAfectada(nombreEntidad)
                     .registroId(registroId)
-                    .valoresAnteriores(jsonAntiguos)
-                    .valoresNuevos(jsonNuevos)
+                    .valoresAnteriores(objectMapper.writeValueAsString(jsonAntiguos))
+                    .valoresNuevos(objectMapper.writeValueAsString(jsonNuevos))
                     .build();
 
             auditoriaRepository.save(auditoria);
@@ -79,9 +91,37 @@ public class AuditoriaListener {
         }
     }
 
+    private Map<String, Object> extraerCamposSimples(Object obj) {
+        Map<String, Object> mapa = new HashMap<>();
+        Class<?> clazz = obj.getClass();
+
+        // Recorremos la clase y sus superclases (por si hay herencia, aunque en tu caso no aplica)
+        while (clazz != null && clazz != Object.class) {
+            for (Field field : clazz.getDeclaredFields()) {
+                // Ignoramos campos estáticos o sintéticos (como los proxies de Hibernate)
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) {
+                    continue;
+                }
+
+                field.setAccessible(true);
+                try {
+                    Object valor = field.get(obj);
+
+                    if (valor == null || valor instanceof String || valor instanceof Number ||
+                            valor instanceof Boolean || valor instanceof Temporal || valor instanceof Enum) {
+                        mapa.put(field.getName(), valor);
+                    }
+                } catch (IllegalAccessException e) {
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+        return mapa;
+    }
+
     private Long obtenerId(Object entity) {
         try {
-            // Asumimos que todas las entidades tienen un método getId()
+            // Buscamos el método getId() en la clase
             return (Long) entity.getClass().getMethod("getId").invoke(entity);
         } catch (Exception e) {
             return null;
@@ -93,11 +133,6 @@ public class AuditoriaListener {
         if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
             return auth.getName();
         }
-        return "sistema";
-    }
-
-    private String enmascararPassword(String json) {
-        if (json == null) return null;
-        return json.replaceAll("\"password\"\\s*:\\s*\"[^\"]*\"", "\"password\":\"***\"");
+        return "sistema"; // Para acciones internas o pruebas desde la BD
     }
 }
