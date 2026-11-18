@@ -1,34 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LogiTrack · Iniciar sesión</title>
+  <meta name="theme-color" content="#0f1b2d">
+  <meta name="description" content="LogiTrack - Sistema de gestión de inventario y bodegas">
+  <title>Iniciar sesión | LogiTrack</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="./css/styles.css">
 </head>
-<body class="login-page">
-  <main class="login-card">
-    <div class="brand"><i class="bi bi-box-seam"></i> LogiTrack</div>
-    <p class="muted">Inventario y auditoría de bodegas</p>
+<body class="auth-body">
+  <main class="auth-layout">
+    <section class="auth-aside" aria-hidden="true">
+      <div class="brand brand-light">
+        <span class="brand-mark" id="brand-mark"></span>
+        <span class="brand-name">LogiTrack</span>
+      </div>
+      <div class="auth-aside-copy">
+        <h2>Control total de tu inventario, bodega por bodega.</h2>
+        <p>Registra entradas, salidas y transferencias, consulta el stock en tiempo real y mantén la trazabilidad completa de cada cambio.</p>
+        <ul class="auth-points">
+          <li>Movimientos con validación de stock</li>
+          <li>Alertas de stock bajo por producto</li>
+          <li>Auditoría de todas las operaciones</li>
+        </ul>
+      </div>
+      <p class="auth-aside-foot">LogiTrack JKQ &copy; 2026</p>
+    </section>
 
-    <form id="loginForm" novalidate>
-      <label for="username">Usuario</label>
-      <input id="username" name="username" autocomplete="username" required autofocus>
+    <section class="auth-panel">
+      <div class="auth-card">
+        <div class="brand auth-brand-mobile">
+          <span class="brand-mark" id="brand-mark-mobile"></span>
+          <span class="brand-name">LogiTrack</span>
+        </div>
 
-      <label for="password">Contraseña</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <div class="tabs" role="tablist" aria-label="Acceso">
+          <button class="tab is-active" role="tab" id="tab-login" aria-controls="panel-login" aria-selected="true">Iniciar sesión</button>
+          <button class="tab" role="tab" id="tab-register" aria-controls="panel-register" aria-selected="false" tabindex="-1">Solicitar registro</button>
+        </div>
 
-      <!-- Mensaje de error del login (rojo, debajo del formulario) -->
-      <p id="loginError" class="form-error" role="alert" hidden></p>
+        <div class="alert alert-warning" id="expired-msg" role="alert" hidden>Tu sesión expiró. Inicia sesión nuevamente.</div>
 
-      <button class="btn btn-success btn-block" id="loginBtn" type="submit">Iniciar sesión</button>
-    </form>
+        <div id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+          <h1 class="auth-title">Bienvenido de nuevo</h1>
+          <p class="muted-text">Ingresa tus credenciales para acceder al panel.</p>
+          <form id="login-form" class="stack" novalidate>
+            <div class="field">
+              <label for="login-username">Usuario</label>
+              <input id="login-username" name="username" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="login-password">Contraseña</label>
+              <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+            </div>
+            <p class="form-error" id="login-error" role="alert" hidden></p>
+            <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+          </form>
+        </div>
+
+        <div id="panel-register" role="tabpanel" aria-labelledby="tab-register" hidden>
+          <h1 class="auth-title">Solicitar una cuenta</h1>
+          <p class="muted-text">Un administrador revisará y aprobará tu solicitud antes de que puedas ingresar.</p>
+          <form id="register-form" class="form-grid" novalidate>
+            <div class="field"><label for="r-nombre">Nombre <span class="req" aria-hidden="true">*</span></label><input id="r-nombre" name="nombre" required autocomplete="given-name"></div>
+            <div class="field"><label for="r-apellido">Apellido <span class="req" aria-hidden="true">*</span></label><input id="r-apellido" name="apellido" required autocomplete="family-name"></div>
+            <div class="field"><label for="r-documento">Documento <span class="req" aria-hidden="true">*</span></label><input id="r-documento" name="documento" required></div>
+            <div class="field"><label for="r-email">Correo <span class="req" aria-hidden="true">*</span></label><input id="r-email" name="email" type="email" required autocomplete="email"></div>
+            <div class="field"><label for="r-telefono">Teléfono</label><input id="r-telefono" name="telefono" type="tel" autocomplete="tel"></div>
+            <div class="field"><label for="r-direccion">Dirección</label><input id="r-direccion" name="direccion" autocomplete="street-address"></div>
+            <div class="field" id="r-ciudad-field">
+              <label for="r-ciudadId">ID de ciudad <span class="req" aria-hidden="true">*</span></label>
+              <input id="r-ciudadId" name="ciudadId" type="number" min="1" required>
+            </div>
+            <div class="field">
+              <label for="r-rolSolicitado">Rol solicitado <span class="req" aria-hidden="true">*</span></label>
+              <select id="r-rolSolicitado" name="rolSolicitado" required>
+                <option value="EMPLEADO">Empleado</option>
+                <option value="ADMIN">Administrador</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="r-turno">Turno</label>
+              <select id="r-turno" name="turno">
+                <option value="">Selecciona…</option>
+                <option value="MAÑANA">Mañana</option>
+                <option value="TARDE">Tarde</option>
+                <option value="NOCHE">Noche</option>
+              </select>
+            </div>
+            <div class="field"><label for="r-fechaIngreso">Fecha de ingreso</label><input id="r-fechaIngreso" name="fechaIngreso" type="date"></div>
+            <div class="field"><label for="r-username">Usuario <span class="req" aria-hidden="true">*</span></label><input id="r-username" name="username" required autocomplete="username"></div>
+            <div class="field"><label for="r-password">Contraseña <span class="req" aria-hidden="true">*</span></label><input id="r-password" name="password" type="password" required autocomplete="new-password"></div>
+            <p class="form-error field-full" id="register-error" role="alert" hidden></p>
+            <div class="field-full"><button type="submit" class="btn btn-primary btn-block">Enviar solicitud</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
   </main>
-  <div id="toasts" class="toasts"></div>
-  <script src="js/auth.js"></script>
-  <script>initLoginPage();</script>
+
+  <script src="./js/config.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/ui.js"></script>
+  <script src="./js/auth.js"></script>
 </body>
 </html>

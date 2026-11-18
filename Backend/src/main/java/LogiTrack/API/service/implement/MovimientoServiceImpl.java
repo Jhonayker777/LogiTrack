@@ -50,15 +50,19 @@ public class MovimientoServiceImpl implements MovimientoService {
         if (dto.bodegaOrigenId() != null) {
             origen = bodegaRepository.findById(dto.bodegaOrigenId())
                     .orElseThrow(() -> new EntityNotFoundException("Bodega de origen no existe"));
+            if (!Boolean.TRUE.equals(origen.getActivo()))
+                throw new BussinesRuleException("La bodega de origen '" + origen.getNombre() + "' está inactiva.");
         }
 
         Bodega destino = null;
         if (dto.bodegaDestinoId() != null) {
             destino = bodegaRepository.findById(dto.bodegaDestinoId())
                     .orElseThrow(() -> new EntityNotFoundException("Bodega de destino no existe"));
+            if (!Boolean.TRUE.equals(destino.getActivo()))
+                throw new BussinesRuleException("La bodega de destino '" + destino.getNombre() + "' está inactiva.");
         }
 
-        // Validaciones de negocio
+        // Validaciones lógicas
         if (dto.tipo() == Movimiento.Tipo.ENTRADA && destino == null)
             throw new BussinesRuleException("Una entrada requiere una bodega de destino.");
         if (dto.tipo() == Movimiento.Tipo.SALIDA && origen == null)
@@ -73,12 +77,15 @@ public class MovimientoServiceImpl implements MovimientoService {
         Producto producto = productoRepository.findById(dto.productoId())
                 .orElseThrow(() -> new EntityNotFoundException("Producto no existe"));
 
-        // 1. Crear la cabecera del movimiento
+        if (!Boolean.TRUE.equals(producto.getActivo()))
+            throw new BussinesRuleException("El producto '" + producto.getNombre() + "' está inactivo.");
+
+        // 1. Crear cabecera
         Movimiento movimiento = movimientoMapper.DtoToEntity(dto, usuario, origen, destino);
         movimiento.setFecha(LocalDateTime.now());
         Movimiento movimientoGuardado = movimientoRepository.save(movimiento);
 
-        // 2. Crear el DetalleMovimiento
+        // 2. Crear Detalle
         DetalleMovimiento detalle = new DetalleMovimiento();
         detalle.setMovimiento(movimientoGuardado);
         detalle.setProducto(producto);
@@ -114,8 +121,20 @@ public class MovimientoServiceImpl implements MovimientoService {
                 });
 
         int nuevaCantidad = stock.getCantidad() + cantidadCambio;
+
         if (nuevaCantidad < 0) {
-            throw new BussinesRuleException("Stock insuficiente en la bodega " + bodega.getNombre() + " para el producto " + producto.getNombre() + ". Stock actual: " + stock.getCantidad());
+            throw new BussinesRuleException("Stock insuficiente en '" + bodega.getNombre() +
+                    "' para el producto '" + producto.getNombre() + "'. Stock actual: " + stock.getCantidad());
+        }
+
+        if (cantidadCambio > 0) {
+            Integer totalActualBodega = stockBodegaRepository.totalUnidadesEnBodega(bodega.getId());
+            int espacioLibre = bodega.getCapacidad() - totalActualBodega;
+            if (cantidadCambio > espacioLibre) {
+                throw new BussinesRuleException("Capacidad excedida en '" + bodega.getNombre() +
+                        "'. Capacidad: " + bodega.getCapacidad() + ". Ocupado: " + totalActualBodega +
+                        ". Libre: " + espacioLibre + ". Intentaste ingresar: " + cantidadCambio);
+            }
         }
 
         stock.setCantidad(nuevaCantidad);

@@ -74,6 +74,11 @@ public class SolicitudRegistroServiceImpl implements SolicitudRegistroService {
             throw new BussinesRuleException("La solicitud ya fue resuelta. Estado actual: " + solicitud.getEstado());
         }
 
+        if (usuarioRepository.existsByUsername(solicitud.getUsername()) ||
+                usuarioRepository.existsByEmail(solicitud.getEmail())) {
+            throw new BussinesRuleException("El username o email ya están en uso por otro usuario. No se puede aprobar la solicitud.");
+        }
+
         Usuario admin = usuarioRepository.findByUsername(usernameAdmin)
                 .orElseThrow(() -> new EntityNotFoundException("Administrador no encontrado: " + usernameAdmin));
 

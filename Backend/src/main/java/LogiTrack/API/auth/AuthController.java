@@ -1,5 +1,6 @@
 package LogiTrack.API.auth;
 
+import LogiTrack.API.dto.request.RecuperarPasswordRequest;
 import LogiTrack.API.dto.request.SolicitudRegistroDtoRequest;
 import LogiTrack.API.dto.response.SolicitudRegistroDtoResponse;
 import LogiTrack.API.service.AuthService;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @Tag(name = "Autenticación", description = "Login y registro (endpoints públicos)")
 @RestController
@@ -43,5 +46,11 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<SolicitudRegistroDtoResponse> register(@Valid @RequestBody SolicitudRegistroDtoRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(dto));
+    }
+
+    @PostMapping("/recuperar-password")
+    public ResponseEntity<Map<String, String>> recuperarPassword(@Valid @RequestBody RecuperarPasswordRequest request) {
+        authService.recuperarPassword(request.email());
+        return ResponseEntity.ok(Map.of("mensaje", "Si el correo existe, recibirás una contraseña temporal."));
     }
 }

@@ -1,105 +1,106 @@
-/* ============================================================
-   auth.js · Sesión, token JWT y cliente HTTP compartido
-   ============================================================ */
-const API_URL = 'http://localhost:8080';   // Cambia aquí si la API usa otro host/puerto
-
-/* ---------- Sesión (sessionStorage: se borra al cerrar la pestaña) ---------- */
-const getToken = () => sessionStorage.getItem('lt_token');
-const getUser  = () => ({ username: sessionStorage.getItem('lt_user'), rol: sessionStorage.getItem('lt_rol') });
-
-function saveSession({ token, username, rol, expiraEnSegundos }) {
-  sessionStorage.setItem('lt_token', token);
-  sessionStorage.setItem('lt_user', username);
-  sessionStorage.setItem('lt_rol', rol);
-  sessionStorage.setItem('lt_exp', Date.now() + expiraEnSegundos * 1000); // el backend informa la vigencia
-}
-function sessionValid() {
-  return !!getToken() && Date.now() < Number(sessionStorage.getItem('lt_exp') || 0);
-}
-/** Cierra sesión: borra el token y vuelve al login (opcionalmente con un mensaje). */
-function logout(mensaje) {
-  ['lt_token', 'lt_user', 'lt_rol', 'lt_exp'].forEach(k => sessionStorage.removeItem(k));
-  if (mensaje) sessionStorage.setItem('lt_flash', mensaje);
-  window.location.href = 'index.html';
-}
-
-/* ---------- Toast (aviso temporal) ---------- */
-function toast(msg, tipo = 'info') {
-  const box = document.getElementById('toasts');
-  const el = document.createElement('div');
-  el.className = `toast toast-${tipo}`;
-  el.textContent = msg;
-  box.appendChild(el);
-  setTimeout(() => el.remove(), 5000);
-}
-
-/* ---------- Cliente HTTP: añade el Bearer token y traduce los errores ---------- */
-async function apiFetch(path, { method = 'GET', body } = {}) {
-  let res;
-  try {
-    res = await fetch(API_URL + path, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`
-      },
-      body: body ? JSON.stringify(body) : undefined
-    });
-  } catch {
-    throw new Error('No se pudo conectar con el servidor. Verifica que la API esté en ' + API_URL);
+(function () {
+  if (Session.isValid()) {
+    window.location.replace("app.html");
+    return;
   }
 
-  // 401: token ausente, inválido o vencido → de vuelta al login
-  if (res.status === 401) { logout('Tu sesión expiró. Inicia sesión de nuevo.'); throw new Error('Sesión expirada'); }
-  if (res.status === 204) return null;
+  document.getElementById("brand-mark").innerHTML = icon("truck", 20);
+  document.getElementById("brand-mark-mobile").innerHTML = icon("truck", 20);
 
-  const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(mensajeDeError(data, res.status));
-  return data;
-}
+  if (new URLSearchParams(location.search).get("expired")) {
+    document.getElementById("expired-msg").hidden = false;
+  }
 
-/** Extrae el mensaje del backend: {message} o {errors:{campo:msg}} (validaciones). */
-function mensajeDeError(data, status) {
-  if (data?.errors) return Object.values(data.errors).join(' · ');
-  if (data?.message) return data.message;      // 403 también llega aquí: "No tienes permisos…"
-  return `Error inesperado (${status})`;
-}
+  const tabs = [document.getElementById("tab-login"), document.getElementById("tab-register")];
+  const panels = [document.getElementById("panel-login"), document.getElementById("panel-register")];
 
-/* ---------- Pantalla de login (index.html) ---------- */
-function initLoginPage() {
-  if (sessionValid()) { window.location.href = 'dashboard.html'; return; }
+  function selectTab(index) {
+    tabs.forEach((t, i) => {
+      const active = i === index;
+      t.classList.toggle("is-active", active);
+      t.setAttribute("aria-selected", String(active));
+      t.tabIndex = active ? 0 : -1;
+      panels[i].hidden = !active;
+    });
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => selectTab(i));
+    t.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        const next = (i + 1) % 2;
+        selectTab(next);
+        tabs[next].focus();
+      }
+    });
+  });
 
-  const form = document.getElementById('loginForm');
-  const err  = document.getElementById('loginError');
-  const btn  = document.getElementById('loginBtn');
-
-  // Mensaje pendiente (por ejemplo, "Tu sesión expiró")
-  const flash = sessionStorage.getItem('lt_flash');
-  if (flash) { toast(flash, 'warn'); sessionStorage.removeItem('lt_flash'); }
-
-  form.addEventListener('submit', async (e) => {
+  const loginForm = document.getElementById("login-form");
+  const loginError = document.getElementById("login-error");
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    err.hidden = true;
-    const username = form.username.value.trim();
-    const password = form.password.value;
-    if (!username || !password) { err.textContent = 'Ingresa tu usuario y contraseña.'; err.hidden = false; return; }
-
-    btn.disabled = true; btn.textContent = 'Ingresando…';
+    loginError.hidden = true;
+    const username = loginForm.username.value.trim();
+    const password = loginForm.password.value;
+    if (!username || !password) {
+      loginError.textContent = "Ingresa tu usuario y contraseña.";
+      loginError.hidden = false;
+      return;
+    }
+    const btn = loginForm.querySelector("button[type=submit]");
+    btn.disabled = true;
+    btn.textContent = "Ingresando…";
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(res.status === 401 ? 'Usuario o contraseña incorrectos.' : mensajeDeError(data, res.status));
-      saveSession(data);
-      window.location.href = 'dashboard.html';
-    } catch (ex) {
-      err.textContent = ex instanceof TypeError ? 'No se pudo conectar con el servidor.' : ex.message;
-      err.hidden = false;
-    } finally {
-      btn.disabled = false; btn.textContent = 'Iniciar sesión';
+      const res = await api("/auth/login", { method: "POST", body: { username, password }, auth: false });
+      Session.set(res);
+      window.location.replace("app.html");
+    } catch (err) {
+      loginError.textContent = err.status === 401 ? "Usuario o contraseña incorrectos." : err.message;
+      loginError.hidden = false;
+      btn.disabled = false;
+      btn.textContent = "Ingresar";
     }
   });
-}
+
+  const registerForm = document.getElementById("register-form");
+  const registerError = document.getElementById("register-error");
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    registerError.hidden = true;
+    registerForm.querySelectorAll(".field-error").forEach((el) => el.remove());
+
+    const data = {};
+    let invalid = false;
+    for (const el of registerForm.elements) {
+      if (!el.name) continue;
+      const v = el.value.trim();
+      if (el.required && !v) {
+        markFieldError(el, "Este campo es obligatorio");
+        invalid = true;
+      }
+      data[el.name] = v === "" ? null : v;
+    }
+    if (invalid) return;
+    data.ciudadId = Number(data.ciudadId);
+
+    const btn = registerForm.querySelector("button[type=submit]");
+    btn.disabled = true;
+    btn.textContent = "Enviando…";
+    try {
+      await api("/auth/register", { method: "POST", body: data, auth: false });
+      registerForm.reset();
+      toast("Solicitud enviada. Un administrador la revisará pronto.");
+      selectTab(0);
+    } catch (err) {
+      if (err.fieldErrors) {
+        for (const [name, msg] of Object.entries(err.fieldErrors)) {
+          if (registerForm.elements[name]) markFieldError(registerForm.elements[name], msg);
+        }
+      }
+      registerError.textContent = err.message;
+      registerError.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Enviar solicitud";
+    }
+  });
+})();

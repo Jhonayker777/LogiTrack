@@ -76,6 +76,14 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void eliminar(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + id));
+
+        if (usuario.getRol() == Usuario.Rol.ADMIN && Boolean.TRUE.equals(usuario.getActivo())) {
+            long adminsActivos = usuarioRepository.countByRolAndActivoTrue(Usuario.Rol.ADMIN);
+            if (adminsActivos <= 1) {
+                throw new BussinesRuleException("No se puede eliminar al último administrador activo del sistema.");
+            }
+        }
+
         if (bodegaRepository.existsByEncargadoId(usuario.getId()))
             throw new DatabaseRuleException("No se puede eliminar el usuario porque es encargado de una bodega.");
         if (movimientoRepository.existsByUsuarioId(usuario.getId()))

@@ -10,4 +10,6 @@ public interface AuthService {
 
     // El registro público crea una solicitud PENDIENTE que un ADMIN debe aprobar
     SolicitudRegistroDtoResponse register(SolicitudRegistroDtoRequest dto);
+
+    void recuperarPassword(String email);
 }

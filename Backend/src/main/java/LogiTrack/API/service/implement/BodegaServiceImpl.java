@@ -58,10 +58,20 @@ public class BodegaServiceImpl implements BodegaService {
     public BodegaDtoResponse actualizar(BodegaDtoRequest dto, Long id) {
         Bodega bodega = bodegaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Bodega no encontrada con ID: " + id));
+
         bodegaRepository.findByNombre(dto.nombre()).ifPresent(otra -> {
             if (!otra.getId().equals(id))
                 throw new BussinesRuleException("Ya existe una bodega con el nombre: " + dto.nombre());
         });
+
+        if (dto.capacidad() < bodega.getCapacidad()) {
+            Integer totalActual = stockBodegaRepository.totalUnidadesEnBodega(id);
+            if (dto.capacidad() < totalActual) {
+                throw new BussinesRuleException("No se puede reducir la capacidad a " + dto.capacidad() +
+                        " porque la bodega tiene actualmente " + totalActual + " unidades en stock.");
+            }
+        }
+
         Usuario encargado = buscarEncargado(dto.encargadoId());
         Ciudad ciudad = buscarCiudad(dto.ciudadId());
 
